@@ -1,0 +1,574 @@
+@17
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@17
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+// ***COMP_0 START***
+D=M-D
+@COMP_0_TRUE
+D;JEQ
+// COMP_0_FALSE
+@0
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+@COMP_0_END
+0;JMP
+(COMP_0_TRUE)
+@1
+D=-A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+(COMP_0_END)
+// SP++
+@SP
+AM=M+1
+@17
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@16
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+// ***COMP_1 START***
+D=M-D
+@COMP_1_TRUE
+D;JEQ
+// COMP_1_FALSE
+@0
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+@COMP_1_END
+0;JMP
+(COMP_1_TRUE)
+@1
+D=-A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+(COMP_1_END)
+// SP++
+@SP
+AM=M+1
+@16
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@17
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+// ***COMP_2 START***
+D=M-D
+@COMP_2_TRUE
+D;JEQ
+// COMP_2_FALSE
+@0
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+@COMP_2_END
+0;JMP
+(COMP_2_TRUE)
+@1
+D=-A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+(COMP_2_END)
+// SP++
+@SP
+AM=M+1
+@892
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@891
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+// ***COMP_3 START***
+D=M-D
+@COMP_3_TRUE
+D;JLT
+// COMP_3_FALSE
+@0
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+@COMP_3_END
+0;JMP
+(COMP_3_TRUE)
+@1
+D=-A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+(COMP_3_END)
+// SP++
+@SP
+AM=M+1
+@891
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@892
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+// ***COMP_4 START***
+D=M-D
+@COMP_4_TRUE
+D;JLT
+// COMP_4_FALSE
+@0
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+@COMP_4_END
+0;JMP
+(COMP_4_TRUE)
+@1
+D=-A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+(COMP_4_END)
+// SP++
+@SP
+AM=M+1
+@891
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@891
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+// ***COMP_5 START***
+D=M-D
+@COMP_5_TRUE
+D;JLT
+// COMP_5_FALSE
+@0
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+@COMP_5_END
+0;JMP
+(COMP_5_TRUE)
+@1
+D=-A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+(COMP_5_END)
+// SP++
+@SP
+AM=M+1
+@32767
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@32766
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+// ***COMP_6 START***
+D=M-D
+@COMP_6_TRUE
+D;JGT
+// COMP_6_FALSE
+@0
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+@COMP_6_END
+0;JMP
+(COMP_6_TRUE)
+@1
+D=-A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+(COMP_6_END)
+// SP++
+@SP
+AM=M+1
+@32766
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@32767
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+// ***COMP_7 START***
+D=M-D
+@COMP_7_TRUE
+D;JGT
+// COMP_7_FALSE
+@0
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+@COMP_7_END
+0;JMP
+(COMP_7_TRUE)
+@1
+D=-A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+(COMP_7_END)
+// SP++
+@SP
+AM=M+1
+@32766
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@32766
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+// ***COMP_8 START***
+D=M-D
+@COMP_8_TRUE
+D;JGT
+// COMP_8_FALSE
+@0
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+@COMP_8_END
+0;JMP
+(COMP_8_TRUE)
+@1
+D=-A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+(COMP_8_END)
+// SP++
+@SP
+AM=M+1
+@57
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@31
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+@53
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+M=M+D
+// SP++
+@SP
+AM=M+1
+@112
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+M=M-D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+M=-D// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+M=M&D
+// SP++
+@SP
+AM=M+1
+@82
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+M=M|D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+M=!D// SP++
+@SP
+AM=M+1
