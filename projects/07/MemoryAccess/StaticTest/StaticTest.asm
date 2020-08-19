@@ -26,8 +26,6 @@ M=D
 @SP
 AM=M+1
 @StaticTest.8
-D=M
-@StaticTest.8
 D=A
 @R15
 M=D
@@ -39,8 +37,6 @@ D=M
 A=M
 M=D
 @StaticTest.3
-D=M
-@StaticTest.3
 D=A
 @R15
 M=D
@@ -51,8 +47,6 @@ D=M
 @R15
 A=M
 M=D
-@StaticTest.1
-D=M
 @StaticTest.1
 D=A
 @R15

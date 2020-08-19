@@ -32,7 +32,6 @@ D;JEQ
 // COMP_0_FALSE
 @0
 D=A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -41,7 +40,6 @@ M=D
 (COMP_0_TRUE)
 @1
 D=-A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -83,7 +81,6 @@ D;JEQ
 // COMP_1_FALSE
 @0
 D=A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -92,7 +89,6 @@ M=D
 (COMP_1_TRUE)
 @1
 D=-A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -134,7 +130,6 @@ D;JEQ
 // COMP_2_FALSE
 @0
 D=A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -143,7 +138,6 @@ M=D
 (COMP_2_TRUE)
 @1
 D=-A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -185,7 +179,6 @@ D;JLT
 // COMP_3_FALSE
 @0
 D=A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -194,7 +187,6 @@ M=D
 (COMP_3_TRUE)
 @1
 D=-A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -236,7 +228,6 @@ D;JLT
 // COMP_4_FALSE
 @0
 D=A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -245,7 +236,6 @@ M=D
 (COMP_4_TRUE)
 @1
 D=-A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -287,7 +277,6 @@ D;JLT
 // COMP_5_FALSE
 @0
 D=A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -296,7 +285,6 @@ M=D
 (COMP_5_TRUE)
 @1
 D=-A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -338,7 +326,6 @@ D;JGT
 // COMP_6_FALSE
 @0
 D=A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -347,7 +334,6 @@ M=D
 (COMP_6_TRUE)
 @1
 D=-A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -389,7 +375,6 @@ D;JGT
 // COMP_7_FALSE
 @0
 D=A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -398,7 +383,6 @@ M=D
 (COMP_7_TRUE)
 @1
 D=-A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -440,7 +424,6 @@ D;JGT
 // COMP_8_FALSE
 @0
 D=A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -449,7 +432,6 @@ M=D
 (COMP_8_TRUE)
 @1
 D=-A
-// PUSH TO STACK 
 @SP
 A=M
 M=D
@@ -525,7 +507,8 @@ AM=M-1
 @SP
 A=M
 D=M
-M=-D// SP++
+M=-D
+// SP++
 @SP
 AM=M+1
 // SP-- 
@@ -569,6 +552,7 @@ AM=M-1
 @SP
 A=M
 D=M
-M=!D// SP++
+M=!D
+// SP++
 @SP
 AM=M+1

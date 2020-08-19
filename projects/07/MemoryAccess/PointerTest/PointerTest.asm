@@ -10,15 +10,14 @@ AM=M+1
 @0
 D=A
 @R3
-A=A+D
-D=M
-@R16
+D=A+D
+@R15
 M=D
 // SP-- 
 @SP
 AM=M-1
 D=M
-@R16
+@R15
 A=M
 M=D
 @3040
@@ -33,15 +32,14 @@ AM=M+1
 @1
 D=A
 @R3
-A=A+D
-D=M
-@R16
+D=A+D
+@R15
 M=D
 // SP-- 
 @SP
 AM=M-1
 D=M
-@R16
+@R15
 A=M
 M=D
 @32
@@ -56,14 +54,14 @@ AM=M+1
 @2
 D=A
 @THIS
-D=M+D
-@R16
+D=D+M
+@R15
 M=D
 // SP-- 
 @SP
 AM=M-1
 D=M
-@R16
+@R15
 A=M
 M=D
 @46
@@ -78,14 +76,14 @@ AM=M+1
 @6
 D=A
 @THAT
-D=M+D
-@R16
+D=D+M
+@R15
 M=D
 // SP-- 
 @SP
 AM=M-1
 D=M
-@R16
+@R15
 A=M
 M=D
 @0
@@ -128,7 +126,8 @@ AM=M+1
 @2
 D=A
 @THIS
-D=M+D
+A=M+D
+D=M
 // PUSH TO STACK 
 @SP
 A=M
@@ -152,7 +151,8 @@ AM=M+1
 @6
 D=A
 @THAT
-D=M+D
+A=M+D
+D=M
 // PUSH TO STACK 
 @SP
 A=M

@@ -1,4 +1,4 @@
-// Push constant 0
+(SimpleFunction.test)
 @0
 D=A
 // PUSH TO STACK 
@@ -8,27 +8,8 @@ M=D
 // SP++
 @SP
 AM=M+1
-// Pop local 0
 @0
 D=A
-@LCL
-D=D+M
-@R15
-M=D
-// SP-- 
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-(X$LOOP_START)
-// Push argument 0
-@0
-D=A
-@ARG
-A=M+D
-D=M
 // PUSH TO STACK 
 @SP
 A=M
@@ -38,6 +19,19 @@ M=D
 AM=M+1
 // Push local 0
 @0
+D=A
+@LCL
+A=M+D
+D=M
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// Push local 1
+@1
 D=A
 @LCL
 A=M+D
@@ -62,20 +56,16 @@ M=M+D
 // SP++
 @SP
 AM=M+1
-// Pop local 0
-@0
-D=A
-@LCL
-D=D+M
-@R15
-M=D
 // SP-- 
 @SP
 AM=M-1
-D=M
-@R15
+@SP
 A=M
-M=D
+D=M
+M=!D
+// SP++
+@SP
+AM=M+1
 // Push argument 0
 @0
 D=A
@@ -89,9 +79,25 @@ M=D
 // SP++
 @SP
 AM=M+1
-// Push constant 1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+M=M+D
+// SP++
+@SP
+AM=M+1
+// Push argument 1
 @1
 D=A
+@ARG
+A=M+D
+D=M
 // PUSH TO STACK 
 @SP
 A=M
@@ -112,52 +118,56 @@ M=M-D
 // SP++
 @SP
 AM=M+1
-// Pop argument 0
-@0
-D=A
-@ARG
-D=D+M
-@R15
-M=D
-// SP-- 
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-// Push argument 0
-@0
-D=A
-@ARG
-A=M+D
-D=M
-// PUSH TO STACK 
-@SP
-A=M
-M=D
-// SP++
-@SP
-AM=M+1
-// If goto
-// SP-- 
-@SP
-AM=M-1
-@SP
-A=M
-D=M
-@X$LOOP_START
-D;JNE
-// Push local 0
-@0
-D=A
+// RETURN
+// Save return address 
 @LCL
-A=M+D
 D=M
-// PUSH TO STACK 
+@5
+A=D-A
+D=M
+@R13
+M=D
+// SP-- 
+@SP
+AM=M-1
 @SP
 A=M
+D=M
+@ARG
+A=M
 M=D
-// SP++
+@ARG
+D=M+1
 @SP
-AM=M+1
+M=D
+@LCL
+D=M
+@1
+A=D-A
+D=M
+@THAT
+M=D
+@LCL
+D=M
+@2
+A=D-A
+D=M
+@THIS
+M=D
+@LCL
+D=M
+@3
+A=D-A
+D=M
+@ARG
+M=D
+@LCL
+D=M
+@4
+A=D-A
+D=M
+@LCL
+M=D
+@R13
+A=M
+0;JMP

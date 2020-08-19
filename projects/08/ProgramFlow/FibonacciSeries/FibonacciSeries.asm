@@ -1,71 +1,9 @@
-@10
-D=A
-// PUSH TO STACK 
-@SP
-A=M
-M=D
-// SP++
-@SP
-AM=M+1
-@0
-D=A
-@LCL
-D=D+M
-@R15
-M=D
-// SP-- 
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@21
-D=A
-// PUSH TO STACK 
-@SP
-A=M
-M=D
-// SP++
-@SP
-AM=M+1
-@22
-D=A
-// PUSH TO STACK 
-@SP
-A=M
-M=D
-// SP++
-@SP
-AM=M+1
-@2
-D=A
-@ARG
-D=D+M
-@R15
-M=D
-// SP-- 
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
+// Push argument 1
 @1
 D=A
 @ARG
-D=D+M
-@R15
-M=D
-// SP-- 
-@SP
-AM=M-1
+A=M+D
 D=M
-@R15
-A=M
-M=D
-@36
-D=A
 // PUSH TO STACK 
 @SP
 A=M
@@ -73,75 +11,10 @@ M=D
 // SP++
 @SP
 AM=M+1
-@6
+// Pop pointer 1
+@1
 D=A
-@THIS
-D=D+M
-@R15
-M=D
-// SP-- 
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@42
-D=A
-// PUSH TO STACK 
-@SP
-A=M
-M=D
-// SP++
-@SP
-AM=M+1
-@45
-D=A
-// PUSH TO STACK 
-@SP
-A=M
-M=D
-// SP++
-@SP
-AM=M+1
-@5
-D=A
-@THAT
-D=D+M
-@R15
-M=D
-// SP-- 
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@2
-D=A
-@THAT
-D=D+M
-@R15
-M=D
-// SP-- 
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@510
-D=A
-// PUSH TO STACK 
-@SP
-A=M
-M=D
-// SP++
-@SP
-AM=M+1
-@6
-D=A
-@R5
+@R3
 D=A+D
 @R15
 M=D
@@ -152,9 +25,58 @@ D=M
 @R15
 A=M
 M=D
+// Push constant 0
 @0
 D=A
-@LCL
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// Pop that 0
+@0
+D=A
+@THAT
+D=D+M
+@R15
+M=D
+// SP-- 
+@SP
+AM=M-1
+D=M
+@R15
+A=M
+M=D
+// Push constant 1
+@1
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// Pop that 1
+@1
+D=A
+@THAT
+D=D+M
+@R15
+M=D
+// SP-- 
+@SP
+AM=M-1
+D=M
+@R15
+A=M
+M=D
+// Push argument 0
+@0
+D=A
+@ARG
 A=M+D
 D=M
 // PUSH TO STACK 
@@ -164,7 +86,85 @@ M=D
 // SP++
 @SP
 AM=M+1
-@5
+// Push constant 2
+@2
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+M=M-D
+// SP++
+@SP
+AM=M+1
+// Pop argument 0
+@0
+D=A
+@ARG
+D=D+M
+@R15
+M=D
+// SP-- 
+@SP
+AM=M-1
+D=M
+@R15
+A=M
+M=D
+(X$MAIN_LOOP_START)
+// Push argument 0
+@0
+D=A
+@ARG
+A=M+D
+D=M
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// If goto
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+@X$COMPUTE_ELEMENT
+D;JNE
+// goto
+@X$END_PROGRAM
+0;JMP
+(X$COMPUTE_ELEMENT)
+// Push that 0
+@0
+D=A
+@THAT
+A=M+D
+D=M
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// Push that 1
+@1
 D=A
 @THAT
 A=M+D
@@ -189,7 +189,72 @@ M=M+D
 // SP++
 @SP
 AM=M+1
+// Pop that 2
+@2
+D=A
+@THAT
+D=D+M
+@R15
+M=D
+// SP-- 
+@SP
+AM=M-1
+D=M
+@R15
+A=M
+M=D
+// Push pointer 1
 @1
+D=A
+@R3
+A=A+D
+D=M
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// Push constant 1
+@1
+D=A
+// PUSH TO STACK 
+@SP
+A=M
+M=D
+// SP++
+@SP
+AM=M+1
+// SP-- 
+@SP
+AM=M-1
+@SP
+A=M
+D=M
+// SP-- 
+@SP
+AM=M-1
+M=M+D
+// SP++
+@SP
+AM=M+1
+// Pop pointer 1
+@1
+D=A
+@R3
+D=A+D
+@R15
+M=D
+// SP-- 
+@SP
+AM=M-1
+D=M
+@R15
+A=M
+M=D
+// Push argument 0
+@0
 D=A
 @ARG
 A=M+D
@@ -201,53 +266,13 @@ M=D
 // SP++
 @SP
 AM=M+1
-// SP-- 
-@SP
-AM=M-1
-@SP
-A=M
-D=M
-// SP-- 
-@SP
-AM=M-1
-M=M-D
-// SP++
-@SP
-AM=M+1
-@6
+// Push constant 1
+@1
 D=A
-@THIS
-A=M+D
-D=M
 // PUSH TO STACK 
 @SP
 A=M
 M=D
-// SP++
-@SP
-AM=M+1
-@6
-D=A
-@THIS
-A=M+D
-D=M
-// PUSH TO STACK 
-@SP
-A=M
-M=D
-// SP++
-@SP
-AM=M+1
-// SP-- 
-@SP
-AM=M-1
-@SP
-A=M
-D=M
-// SP-- 
-@SP
-AM=M-1
-M=M+D
 // SP++
 @SP
 AM=M+1
@@ -264,28 +289,21 @@ M=M-D
 // SP++
 @SP
 AM=M+1
-@6
+// Pop argument 0
+@0
 D=A
-@R5
-A=A+D
-D=M
-// PUSH TO STACK 
+@ARG
+D=D+M
+@R15
+M=D
+// SP-- 
 @SP
+AM=M-1
+D=M
+@R15
 A=M
 M=D
-// SP++
-@SP
-AM=M+1
-// SP-- 
-@SP
-AM=M-1
-@SP
-A=M
-D=M
-// SP-- 
-@SP
-AM=M-1
-M=M+D
-// SP++
-@SP
-AM=M+1
+// goto
+@X$MAIN_LOOP_START
+0;JMP
+(X$END_PROGRAM)
