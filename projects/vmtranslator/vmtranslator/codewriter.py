@@ -11,7 +11,7 @@ class CodeWriter():
 
     def __init__(self, output_file):
         self.output_file = output_file
-        self.static_name = output_file.name.split("\\")[-1].split(".asm")[0]
+        self.static_name = ""
         self.comp_counter = 0
         self.returnL = 0
         self.functionLabel = 'X'

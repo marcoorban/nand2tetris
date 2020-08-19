@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["08\\FunctionCalls\\NestedCall\\Sys.vm"]
+            "args": ["C:/Users/Marco Orban/Desktop/nand2tetris/projects/08/FunctionCalls/FibonacciElement"]
         }
     ]
 }

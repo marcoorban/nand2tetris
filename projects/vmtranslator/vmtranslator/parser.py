@@ -1,8 +1,11 @@
 import sys
+from os.path import normpath
+from os.path import basename
 
 class Parser():
 
     def __init__(self, input_file):
+        self.current_file = basename(normpath(input_file))
         self.commands = self.sanitize(input_file)
         self.idx = -1
         self.current_command = ''
