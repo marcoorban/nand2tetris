@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["C:/Users/Marco Orban/Desktop/nand2tetris/projects/08/FunctionCalls/FibonacciElement"]
+            "args": ["C:/MarcoDocs/projects/nand2tetris/nand2tetris/projects/10/Square"]
         }
     ]
 }
