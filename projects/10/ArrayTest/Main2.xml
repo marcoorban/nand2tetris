@@ -38,6 +38,9 @@
           <identifier> length </identifier>
           <symbol> = </symbol>
           <expression>
+            <term>
+              <identifier> Keyboard </identifier>
+            </term>
           </expression>
           <identifier> readInt </identifier>
         </letStatement>

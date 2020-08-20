@@ -4,6 +4,8 @@ class CompilationEngine():
 
     unary_op = ['-', '~']
 
+    keyword_constant = ['true', 'false', 'null', 'this']
+
     def __init__(self, token_file, xml_file):
         self.xml = xml_file
         self.tokens = self.get_tokens(token_file)
@@ -221,7 +223,6 @@ class CompilationEngine():
         # = 
         self.write_token()
         # expression
-        self.get_next_token()
         self.compileExpression()
         # ;
         self.get_next_token()
@@ -245,12 +246,36 @@ class CompilationEngine():
         self.get_next_token()
         if self.token_content() in CompilationEngine.op:
             self.write_token()
-
+            self.compileTerm()
         self.decrease_indent()
         self.write_tag("</expression>")
 
     def compileTerm(self):
-        pass
+        self.write_tag("<term>")
+        self.increase_indent()
+        # get next token and check if it's a unary operator
+        self.get_next_token()
+        if self.token_content() in CompilationEngine.unary_op:
+            self.write_token()
+            self.compileTerm()
+        # check if it's a keyword constant
+        elif self.token_content() in CompilationEngine.keyword_constant:
+            pass
+        # check if it's an integer constant
+        elif self.token_tag() == "integerConstant":
+            pass
+        # check if it's a string constant
+        elif self.token_tag() == "stringConstant":
+            pass
+        # check if it's another expression:
+        elif self.token_content() == "(":
+            pass
+        # check if it's a subroutine call (next token is '(')
+
+        # check if it's varName[expression] (next token is '[')
+
+        self.decrease_indent()
+        self.write_tag("</term>")
 
     def compileExpressionList(self):
         pass
