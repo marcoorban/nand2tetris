@@ -39,11 +39,13 @@ for jack_file in jack_files:
 
     # Creating the code xml files
 
-token_files = jack_files = [join(jack_folder_path, f) for f in listdir(jack_folder_path) if (isfile(join(jack_folder_path, f)) and splitext(f)[1] == 'T2.xml')]
+token_files  = [join(jack_folder_path, f) for f in listdir(jack_folder_path) if (isfile(join(jack_folder_path, f)) and "T2.xml" in str(f))]
+print(token_files)
 
 for token_file in token_files:
-    xml_file = token_file.replace("T2.xml", "xml")
-    with open(xml_file, "w") as xml_file:
-        e = compilation_engine.CompilationEngine(token_file, xml_file)
+    xml_file = token_file.replace("T2.xml", "2.xml")
+    with open(xml_file, "w") as xml:
+        e = compilation_engine.CompilationEngine(token_file, xml)
+        e.compileClass()
 
 
