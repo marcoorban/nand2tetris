@@ -54,6 +54,9 @@ class CompilationEngine():
     def token_content(self):
         return self.current_token.split("<")[1].split(">")[-1].strip()
 
+    def token_tag(self):
+        return self.current_token.split(">")[0].split("<")[-1].strip()
+
     def compileClass(self):
         self.write_tag("<class>")
         self.increase_indent()
@@ -127,10 +130,10 @@ class CompilationEngine():
         while self.token_content() == "var":
             self.compileVarDec()
             self.get_next_token()
-        while self.token_content() in ["let", "if", "while", "do", "return"]:
-            self.compileStatements()
+
+        self.compileStatements()
+ 
         # }
-        self.get_next_token()
         self.write_token()
         self.decrease_indent()
         self.write_tag("</subroutineBody>")
@@ -187,21 +190,38 @@ class CompilationEngine():
     def compileStatements(self):
         self.write_tag("<statements>")
         self.increase_indent()
-        if self.token_content() == "let":
-            self.compileLet()
-        elif self.token_content() == "if":
-            self.compileIf()
-        elif self.token_content() == "while":
-            self.compileWhile()
-        elif self.token_content() == "do":
-            self.compileDo()
-        elif self.token_content() == "return":
-            self.compileReturn()
+        while self.token_content() in ["let", "if", "while", "do", "return"]:
+            if self.token_content() == "let":
+                self.compileLet()
+                self.get_next_token()
+            elif self.token_content() == "if":
+                self.compileIf()
+                self.get_next_token()
+            elif self.token_content() == "while":
+                self.compileWhile()
+                self.get_next_token()
+            elif self.token_content() == "do":
+                self.compileDo()
+                self.get_next_token()
+            elif self.token_content() == "return":
+                self.compileReturn()
+                self.get_next_token()
+        self.go_back_one_token()
         self.decrease_indent()
         self.write_tag("</statements>")
 
     def compileDo(self):
-        pass
+        self.write_tag("<doStatement>")
+        self.increase_indent()
+        # do
+        self.write_token()
+        self.compileSubroutineCall()
+        # ;
+        self.get_next_token()
+        self.write_token()
+        # close tag
+        self.decrease_indent()
+        self.write_tag("</doStatement>")
 
     def compileLet(self):
         self.write_tag("<letStatement>")
@@ -215,10 +235,12 @@ class CompilationEngine():
         self.get_next_token()
         if self.token_content() == '[':
             self.write_token()
-            self.get_next_token()
+
             self.compileExpression()
+            # ]
             self.get_next_token()
             self.write_token()
+            # get ready for =
             self.get_next_token()
         # = 
         self.write_token()
@@ -227,17 +249,89 @@ class CompilationEngine():
         # ;
         self.get_next_token()
         self.write_token()
+        # close tag
         self.decrease_indent()
         self.write_tag("</letStatement>")
 
     def compileWhile(self):
-        pass
+        self.write_tag("<whileStatement>")
+        self.increase_indent()
+        # while
+        self.write_token()
+        # ( 
+        self.get_next_token()
+        self.write_token()
+        # expression
+        self.compileExpression()
+        # )
+        self.get_next_token()
+        self.write_token()
+        # {
+        self.get_next_token()
+        self.write_token()
+        # statements 
+        self.get_next_token()
+        self.compileStatements()
+        # } 
+        self.get_next_token()
+        self.write_token()
+        self.decrease_indent()
+        self.write_tag("</whileStatement>")
 
     def compileReturn(self):
-        pass
+        self.write_tag("<returnStatement>")
+        self.increase_indent()
+        # return
+        self.write_token()
+        # check if semicolon -> if not, then expression
+        self.get_next_token()
+        if self.token_content() != ";":
+            self.compileExpression()
+            self.get_next_token()
+        # ;
+        self.write_token()
+        self.decrease_indent()
+        self.write_tag("</returnStatement>")
 
     def compileIf(self):
-        pass
+        self.write_tag("<ifStatement>")
+        self.increase_indent()
+        # if
+        self.write_token()
+        # (
+        self.get_next_token()
+        self.write_token()
+        # expression
+        self.compileExpression()
+        # )
+        self.get_next_token()
+        self.write_token()
+        # {
+        self.get_next_token()
+        self.write_token()
+        # statements
+        self.compileStatements()
+        # }
+        self.get_next_token()
+        self.write_token()
+        # (else {statements} )?
+        self.get_next_token()
+        if self.token_content() == "else":
+            # else
+            self.write_token()
+            # {
+            self.get_next_token()
+            self.write_token()
+            # statements 
+            self.compileStatements()
+            # }
+            self.get_next_token()
+            self.write_token()
+        # if there wasn't an else keyword, then go back to previous token.
+        else:
+            self.go_back_one_token()
+        self.decrease_indent()
+        self.write_tag("</ifStatement>")
 
     def compileExpression(self):
         self.write_tag("<expression>")
@@ -247,6 +341,8 @@ class CompilationEngine():
         if self.token_content() in CompilationEngine.op:
             self.write_token()
             self.compileTerm()
+        else:
+            self.go_back_one_token()
         self.decrease_indent()
         self.write_tag("</expression>")
 
@@ -255,27 +351,101 @@ class CompilationEngine():
         self.increase_indent()
         # get next token and check if it's a unary operator
         self.get_next_token()
+
+        # save the next next token in a variable, then go back to where we were
+        self.get_next_token()
+        next_token = self.token_content()
+        self.go_back_one_token()
+        #### 
+
         if self.token_content() in CompilationEngine.unary_op:
             self.write_token()
             self.compileTerm()
         # check if it's a keyword constant
         elif self.token_content() in CompilationEngine.keyword_constant:
-            pass
+            self.write_token()
         # check if it's an integer constant
         elif self.token_tag() == "integerConstant":
-            pass
+            self.write_token()
         # check if it's a string constant
         elif self.token_tag() == "stringConstant":
-            pass
+            self.write_token()
         # check if it's another expression:
         elif self.token_content() == "(":
-            pass
+            self.compileExpression()
         # check if it's a subroutine call (next token is '(')
-
-        # check if it's varName[expression] (next token is '[')
-
+        elif next_token in ["(", "[", "."]:
+            if next_token in ["(", "."]:
+                self.compileSubroutineCall()
+            # check if it's varName[expression] (next token is '[')
+            elif next_token == "[":
+                #varName[ expression ]
+                # write varname
+                self.write_token()
+                # write [
+                self.get_next_token()
+                self.write_token()
+                # compile expression
+                self.compileExpression()
+                # write ]
+                self.get_next_token()
+                self.write_token()
+        # If all of the above cases fail, then it's just a varname and we can just write it down
+        else:
+            # Need to go back one token because it was moved forward to see if there was an open paren or bracket in the comparison above.
+            self.write_token()
+        # Remove indentation and close brackets and return
         self.decrease_indent()
         self.write_tag("</term>")
+        return 
 
     def compileExpressionList(self):
-        pass
+        self.write_tag("<expressionList>")
+        self.increase_indent()
+        self.compileExpression()
+        while self.token_content() == ",":
+            self.write_token()
+            self.compileExpression()
+        self.decrease_indent()
+        self.write_tag("</expressionList>")
+
+    def compileSubroutineCall(self):
+        # current token is either on the open paren or dot
+        self.get_next_token()
+        if self.token_content() == "(":
+            self.go_back_one_token()
+            self.write_token()
+            # (
+            self.get_next_token()
+            self.write_token()
+            # expressionList, but only call if next token is not closed paren
+            self.get_next_token()
+            if self.token_content() != ")":
+                self.go_back_one_token()
+                self.compileExpressionList()
+                self.get_next_token()
+            # )
+            self.write_token()
+            return
+        elif self.token_content() == ".":
+            # className | varName
+            self.go_back_one_token()
+            self.write_token()
+            # .
+            self.get_next_token()
+            self.write_token()
+            # subroutine Name
+            self.get_next_token()
+            self.write_token()
+            # (
+            self.get_next_token()
+            self.write_token()
+            # expressionList, but only call if next token is not a closed parenthesis
+            self.get_next_token()
+            if self.token_content() != ")":
+                self.go_back_one_token()
+                self.compileExpressionList()
+            # ) 
+            self.get_next_token()
+            self.write_token()
+            return
