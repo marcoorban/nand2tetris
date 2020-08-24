@@ -70,31 +70,47 @@ class CompilationEngine():
         self.get_next_token()
         self.write_token()
         # classVarDec*
-        self.compileClassVarDec()
-        # subroutineDec* 
-        self.compileSubroutineDec()
-        # }
         self.get_next_token()
+        while self.token_content() in ["static", "field"]:
+            self.compileClassVarDec()
+            self.get_next_token()
+        # subroutineDec* 
+        while self.token_content() in ["constructor", "method", "function"]:
+            self.compileSubroutineDec()
+            self.get_next_token()
+        # }
         self.write_token()
         # close tag
         self.decrease_indent()
         self.write_tag("</class>")
 
     def compileClassVarDec(self):
-        self.get_next_token()
-        if self.token_content() not in ["static", "field"]:
-            self.go_back_one_token()
-            return
         self.write_tag("<classVarDec>")
         self.increase_indent()
+        # static or field
+        self.write_token()
+        # type
+        self.get_next_token()
+        self.write_token()
+        # varName
+        self.get_next_token()
+        self.write_token()
+        # check if the declaration continues by checking for commas
+        self.get_next_token()
+        while self.token_content() == ',':
+            # ,
+            self.write_token()
+            # varName
+            self.get_next_token()
+            self.write_token()
+            # check for comma again
+            self.get_next_token()
+        # ;
+        self.write_token()
         self.decrease_indent()
         self.write_tag("</classVarDec>")
 
     def compileSubroutineDec(self):
-        self.get_next_token()
-        if self.token_content() not in ["constructor", "function", "method"]:
-            self.go_back_one_token()
-            return
         self.write_tag("<subroutineDec>")
         self.increase_indent()
         # write constructor, function or method
@@ -134,6 +150,7 @@ class CompilationEngine():
         self.compileStatements()
  
         # }
+        self.get_next_token()
         self.write_token()
         self.decrease_indent()
         self.write_tag("</subroutineBody>")
@@ -215,6 +232,8 @@ class CompilationEngine():
         self.increase_indent()
         # do
         self.write_token()
+        # We need to go forward one token so can compileSubroutineCall can determine if a "." or a "[" comes after
+        self.get_next_token()
         self.compileSubroutineCall()
         # ;
         self.get_next_token()
@@ -310,6 +329,7 @@ class CompilationEngine():
         self.get_next_token()
         self.write_token()
         # statements
+        self.get_next_token()
         self.compileStatements()
         # }
         self.get_next_token()
@@ -323,6 +343,7 @@ class CompilationEngine():
             self.get_next_token()
             self.write_token()
             # statements 
+            self.get_next_token()
             self.compileStatements()
             # }
             self.get_next_token()
@@ -400,14 +421,10 @@ class CompilationEngine():
         return 
 
     def compileExpressionList(self):
-        self.write_tag("<expressionList>")
-        self.increase_indent()
         self.compileExpression()
         while self.token_content() == ",":
             self.write_token()
             self.compileExpression()
-        self.decrease_indent()
-        self.write_tag("</expressionList>")
 
     def compileSubroutineCall(self):
         # current token is either on the open paren or dot
@@ -422,7 +439,11 @@ class CompilationEngine():
             self.get_next_token()
             if self.token_content() != ")":
                 self.go_back_one_token()
+                self.write_tag("<expressionList>")
+                self.increase_indent()
                 self.compileExpressionList()
+                self.decrease_indent()
+                self.write_tag("</expressionList>")
                 self.get_next_token()
             # )
             self.write_token()
@@ -441,11 +462,19 @@ class CompilationEngine():
             self.get_next_token()
             self.write_token()
             # expressionList, but only call if next token is not a closed parenthesis
+            self.write_tag("<expressionList>")
+            self.increase_indent()
             self.get_next_token()
             if self.token_content() != ")":
                 self.go_back_one_token()
                 self.compileExpressionList()
-            # ) 
-            self.get_next_token()
-            self.write_token()
+                self.decrease_indent()
+                self.write_tag("</expressionList>")
+                self.get_next_token()
+                self.write_token()
+            else:
+                self.decrease_indent()
+                self.write_tag("</expressionList>")
+
+                self.write_token()
             return
