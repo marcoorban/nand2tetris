@@ -150,66 +150,16 @@
               <expression>
                 <term>
                   <identifier> a </identifier>
-                  <symbol> [ </symbol>
-                  <expression>
-                    <term>
-                      <integerConstant> 2 </integerConstant>
-                    </term>
-                  </expression>
-                  <symbol> ] </symbol>
                 </term>
               </expression>
-              <symbol> ; </symbol>
+              <symbol> [ </symbol>
             </letStatement>
           </statements>
-          <symbol> } </symbol>
-          <keyword> else </keyword>
-          <symbol> { </symbol>
-          <statements>
-            <letStatement>
-              <keyword> let </keyword>
-              <identifier> i </identifier>
-              <symbol> = </symbol>
-              <expression>
-                <term>
-                  <identifier> i </identifier>
-                </term>
-                <symbol> * </symbol>
-                <term>
-                  <symbol> ( </symbol>
-                </term>
-                <symbol> - </symbol>
-                <term>
-                  <identifier> j </identifier>
-                </term>
-              </expression>
-              <symbol> ) </symbol>
-            </letStatement>
-          </statements>
-          <symbol> ; </symbol>
+          <integerConstant> 2 </integerConstant>
         </ifStatement>
-        <letStatement>
-          <keyword> let </keyword>
-          <identifier> j </identifier>
-          <symbol> = </symbol>
-          <expression>
-            <term>
-              <identifier> j </identifier>
-            </term>
-            <symbol> / </symbol>
-            <term>
-              <symbol> ( </symbol>
-            </term>
-            <symbol> - </symbol>
-            <term>
-              <integerConstant> 2 </integerConstant>
-            </term>
-          </expression>
-          <symbol> ) </symbol>
-        </letStatement>
       </statements>
-      <symbol> ; </symbol>
+      <symbol> ] </symbol>
     </subroutineBody>
   </subroutineDec>
-  <keyword> let </keyword>
+  <symbol> ; </symbol>
 </class>

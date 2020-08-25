@@ -8,9 +8,9 @@
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "${workspaceFolder}/projects/compiler/main.py",
             "console": "integratedTerminal",
-            "args": ["C:/MarcoDocs/projects/nand2tetris/nand2tetris/projects/10/Square"]
+            "args": ["${workspaceFolder}/projects/10/Square"]
         }
     ]
 }

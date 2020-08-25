@@ -1,3 +1,5 @@
+import re
+
 class CompilationEngine():
 
     op = ['+', '-', '*', '/', '&amp;', '|', '&lt;', '&gt;', '=']
@@ -376,7 +378,7 @@ class CompilationEngine():
             self.compileTerm()
             # get next token to check while loop
             self.get_next_token()
-        # must go back one token because compileexrepssion is always followed by a get next token, and we've moved one token forward to check the while loop.
+        # must go back one token because this function is always followed by a get next token, and we've moved one token forward to check the while loop.
         self.go_back_one_token()
         self.decrease_indent()
         self.write_tag("</expression>")
@@ -408,7 +410,7 @@ class CompilationEngine():
         self.get_next_token()
         look_ahead_token = self.token_content()
         self.go_back_one_token()
-        if look_ahead_token in ['[', '(', '.']:
+        if look_ahead_token in ['[', '(', '.'] and self.is_valid_identifier():
             if look_ahead_token == '[':
                 # varName[expression]
                 # varname
@@ -433,6 +435,15 @@ class CompilationEngine():
             self.compileTerm()
         elif self.token_tag() in ["integerConstant", "stringConstant", "keywordConstant"]:
             # constant
+            self.write_token()
+        elif self.token_content() == "(":
+            # (
+            self.write_token()
+            # expression
+            self.get_next_token()
+            self.compileExpression()
+            # )
+            self.get_next_token()
             self.write_token()
         else:
             #varname
@@ -483,6 +494,13 @@ class CompilationEngine():
             # ) 
             self.get_next_token()
             self.write_token()
+
+    def is_valid_identifier(self):
+        if self.token_content()[0].isdigit():
+            return False
+        if re.match(r'^[A-Za-z0-9_]+$', self.token_content()[1:]):
+            return True
+        
 
 
 

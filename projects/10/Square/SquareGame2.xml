@@ -581,8 +581,8 @@
               <expression>
                 <term>
                   <symbol> ~ </symbol>
-                  <symbol> ( </symbol>
-                  <expressionList>
+                  <term>
+                    <symbol> ( </symbol>
                     <expression>
                       <term>
                         <identifier> key </identifier>
@@ -592,8 +592,8 @@
                         <integerConstant> 0 </integerConstant>
                       </term>
                     </expression>
-                  </expressionList>
-                  <symbol> ) </symbol>
+                    <symbol> ) </symbol>
+                  </term>
                 </term>
               </expression>
               <symbol> ) </symbol>
