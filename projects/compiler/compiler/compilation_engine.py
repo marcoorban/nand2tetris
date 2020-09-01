@@ -1,4 +1,6 @@
 import re
+from compiler import vmwriter
+from compiler import symboltable
 
 class CompilationEngine():
 
@@ -8,12 +10,14 @@ class CompilationEngine():
 
     keyword_constant = ['true', 'false', 'null', 'this']
 
-    def __init__(self, token_file, xml_file):
-        self.xml = xml_file
+    def __init__(self, token_file, vm_file):
         self.tokens = self.get_tokens(token_file)
         self.current_token = ''
         self.idx = -1
         self.indent_level = 0
+        self.current_class = ""
+        self.vmwriter = vmwriter.VMWriter(vm_file)
+        self.symbol_table = symboltable.SymbolTable()
 
     def get_tokens(self, token_file):
         token_list = []
@@ -38,20 +42,10 @@ class CompilationEngine():
         self.indent_level -= 1
 
     def write_token(self):
-        i = 0
-        while i < (self.indent_level):
-            self.xml.write("  ")
-            i += 1
-        self.xml.write(self.current_token)
-        self.xml.write("\n")
+        pass
 
     def write_tag(self, tag):
-        i = 0
-        while i < (self.indent_level):
-            self.xml.write("  ")
-            i += 1  
-        self.xml.write(tag)
-        self.xml.write("\n")
+        pass
 
     def token_content(self):
         return self.current_token.split("<")[1].split(">")[-1].strip()
@@ -60,14 +54,12 @@ class CompilationEngine():
         return self.current_token.split(">")[0].split("<")[-1].strip()
 
     def compileClass(self):
-        self.write_tag("<class>")
         self.increase_indent()
         # class
         self.get_next_token()
-        self.write_token()
         # className
         self.get_next_token()
-        self.write_token()
+        self.current_class = self.token_content()
         # {
         self.get_next_token()
         self.write_token()
@@ -89,63 +81,54 @@ class CompilationEngine():
         self.write_tag("</class>")
 
     def compileClassVarDec(self):
-        self.write_tag("<classVarDec>")
-        self.increase_indent()
         # static|field
-        self.write_token()
+        varkind = self.token_content()
         # type
         self.get_next_token()
-        self.write_token()
+        vartype = self.token_content()
         # varName
         self.get_next_token()
-        self.write_token()
+        varname = self.token_content()
+        # add class variable to table
+        self.symbol_table.define(varname, vartype, varkind)
         # check if there is comma
         self.get_next_token()
         while self.token_content() == ",":
-            self.write_token()
             # varName
             self.get_next_token()
-            self.write_token()
+            varname = self.token_content()
+            # add to table
+            self.symbol_table.define(varname, vartype, varkind)
             # get next token to check if it's a comma
             self.get_next_token()
         # ;
-        self.write_token()
-        # close tag
-        self.decrease_indent()
-        self.write_tag("</classVarDec>")
 
     def compileSubroutineDec(self):
-        self.write_tag("<subroutineDec>")
-        self.increase_indent()
         # constructor|method|function
-        self.write_token()
+        subroutine_type = self.token_content()
         # type
         self.get_next_token()
-        self.write_token()
         # subroutine Name
         self.get_next_token()
-        self.write_token()
+        subroutine_name = self.token_content()
         # open paren
         self.get_next_token()
-        self.write_token()
         # param list
-        self.write_tag("<parameterList>")
-        self.increase_indent()
         self.get_next_token()
+        arguments = 0
+        if subroutine_type == "method":
+            arguments += 1
         if self.token_content() != ")":
-            self.compileParameterList()
+            arguments += self.compileParameterList()
             # params list exits with token already moved forward
-        self.decrease_indent()
-        self.write_tag("</parameterList>")
         # closed paren
-        self.write_token()
+        self.vmwriter.writeFunction(f"{self.current_class}.{subroutine_name} {arguments}")
         # subroutine Body
         self.get_next_token()
         self.compileSubroutineBody()
-        self.decrease_indent()
-        self.write_tag("</subroutineDec>")
 
     def compileParameterList(self):
+        args = 1
         # type
         self.write_token()
         # varName
@@ -154,6 +137,7 @@ class CompilationEngine():
         # check for comma to see if more variables
         self.get_next_token()
         while self.token_content() == ",":
+            args += 1
             # ,
             self.write_token()
             # type
@@ -164,10 +148,11 @@ class CompilationEngine():
             self.write_token()
             # check for comma
             self.get_next_token()
+        return args
 
     def compileSubroutineBody(self):
-        self.write_tag("<subroutineBody>")
-        self.increase_indent()
+        # clear symbol subroutine table
+        self.symbol_table.startSubroutine()
         # {
         self.write_token()
         # varDec*
@@ -177,13 +162,15 @@ class CompilationEngine():
             self.write_tag("<varDec>")
             self.increase_indent()
             # var
-            self.write_token()
+            varkind = self.token_content()
             # type
             self.get_next_token()
-            self.write_token()
+            vartype = self.token_content()
             # varName
             self.get_next_token()
-            self.write_token()
+            varname = self.token_content()
+            # define variable in symbol token
+            self.symbol_table.define(varname, vartype, varkind)
             # check for comma
             self.get_next_token()
             while self.token_content() == ",":
@@ -191,27 +178,24 @@ class CompilationEngine():
                 self.write_token()
                 # varName
                 self.get_next_token()
-                self.write_token()
+                varname = self.token_content()
                 # check for comma
+                self.symbol_table.define(varname, vartype, varkind)
                 self.get_next_token()
             # ;
-            self.write_token()
             # check if next keyword is var for while loop
-            self.decrease_indent()
-            self.write_tag("</varDec>")
             self.get_next_token()
+
         # statements
         self.compileStatements()
         # }
         self.get_next_token()
         self.write_token()
         # close tag
-        self.decrease_indent() 
-        self.write_tag("</subroutineBody>")
+        """Delete this later"""
+        print(self.symbol_table)
 
     def compileStatements(self):
-        self.write_tag("<statements>")
-        self.increase_indent()
         while self.token_content() in ["let", "if", "while", "do", "return"]:
             if self.token_content() == "let":
                 self.compileLet()

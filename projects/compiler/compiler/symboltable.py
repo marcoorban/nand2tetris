@@ -8,6 +8,9 @@ class SymbolTable():
         self.argNo = -1
         self.varNo = -1
 
+    def __repr__(self):
+        return f'{self.class_table}\n{self.subroutine_table}'
+
     def startSubroutine(self):
         self.subroutine_table = {}
         self.argNo = -1

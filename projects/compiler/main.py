@@ -43,9 +43,9 @@ token_files  = [join(jack_folder_path, f) for f in listdir(jack_folder_path) if 
 print(token_files)
 
 for token_file in token_files:
-    xml_file = token_file.replace("T2.xml", "2.xml")
-    with open(xml_file, "w") as xml:
-        e = compilation_engine.CompilationEngine(token_file, xml)
+    vm_file = token_file.replace("T2.xml", ".vm")
+    with open(vm_file, "w") as vm:
+        e = compilation_engine.CompilationEngine(token_file, vm)
         e.compileClass()
 
 
