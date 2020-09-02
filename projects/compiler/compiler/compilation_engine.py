@@ -105,9 +105,9 @@ class CompilationEngine():
 
     def compileSubroutineDec(self):
         # constructor|method|function
-        subroutine_type = self.token_content()
         # type
         self.get_next_token()
+        subroutine_type = self.token_content()
         # subroutine Name
         self.get_next_token()
         subroutine_name = self.token_content()
@@ -115,17 +115,17 @@ class CompilationEngine():
         self.get_next_token()
         # param list
         self.get_next_token()
-        arguments = 0
-        if subroutine_type == "method":
-            arguments += 1
         if self.token_content() != ")":
-            arguments += self.compileParameterList()
+            self.compileParameterList()
             # params list exits with token already moved forward
         # closed paren
-        self.vmwriter.writeFunction(f"{self.current_class}.{subroutine_name} {arguments}")
+        self.vmwriter.writeFunction(f"{self.current_class}.{subroutine_name}")
         # subroutine Body
         self.get_next_token()
         self.compileSubroutineBody()
+        # If subroutine type is void, then the value in stack should be popped to temp
+        if subroutine_type == "void":
+            self.vmwriter.writePop("temp", "0")
 
     def compileParameterList(self):
         args = 1
@@ -153,6 +153,8 @@ class CompilationEngine():
     def compileSubroutineBody(self):
         # clear symbol subroutine table
         self.symbol_table.startSubroutine()
+        # increase the vm writer indent for easier reading
+        self.vmwriter.increase_indent()
         # {
         self.write_token()
         # varDec*
@@ -190,7 +192,8 @@ class CompilationEngine():
         self.compileStatements()
         # }
         self.get_next_token()
-        self.write_token()
+        # decrease the vm writer's indent for easier reading.
+        self.vmwriter.decrease_indent()
         # close tag
         """Delete this later"""
         print(self.symbol_table)
@@ -317,10 +320,7 @@ class CompilationEngine():
         self.write_tag("</whileStatement>")
 
     def compileDo(self):
-        self.write_tag("<doStatement>")
-        self.increase_indent()
         # do 
-        self.write_token()
         # subroutineCall
         self.get_next_token()
         self.compileSubroutineCall()
@@ -332,35 +332,31 @@ class CompilationEngine():
         self.write_tag("</doStatement>")
 
     def compileReturn(self):
-        self.write_tag("<returnStatement>")
-        self.increase_indent()
         # return
-        self.write_token()
-        # check for expression
+        # get next token to check for expression
         self.get_next_token()
         if self.token_content() != ';':
             self.compileExpression()
             self.get_next_token()
         # ;
-        self.write_token()
         # tag
-        self.decrease_indent()
-        self.write_tag("</returnStatement>")
+        # Vm writer needs to write return now
+        self.vmwriter.writeReturn()
 
     def compileExpression(self):
         # the current token is already loaded and there is no need to call get_next_token first
-        self.write_tag("<expression>")
-        self.increase_indent()
         self.compileTerm()
         # check for operator
         self.get_next_token()
         while self.token_content() in CompilationEngine.op:
             # op
-            self.write_token()
+            op = self.token_content()
             # term
             self.get_next_token()
             self.compileTerm()
             # get next token to check while loop
+            # the operator has to be written at the end
+            self.vmwriter.writeArithmetic(op)
             self.get_next_token()
         # must go back one token because this function is always followed by a get next token, and we've moved one token forward to check the while loop.
         self.go_back_one_token()
@@ -388,8 +384,6 @@ class CompilationEngine():
 
     def compileTerm(self):
         # the first term is already loaded and no need to call next_token from the start
-        self.write_tag("<term>")
-        self.increase_indent()
         # need to look ahead one token to determine if it's a case of varName[expression] or subroutineName(expression)|className.subroutineName(Expression)
         self.get_next_token()
         look_ahead_token = self.token_content()
@@ -413,12 +407,20 @@ class CompilationEngine():
  
         elif self.token_content() in CompilationEngine.unary_op:
             # unary op
-            self.write_token()
+            operator = self.token_content()
             # term
             self.get_next_token()
             self.compileTerm()
+            # to differentiate minus vs. neg, neg will be represented as double minus sign.
+            if operator == "-":
+                operator = "--"
+            # write the unary op at the end of the term compilation
+            self.vmwriter.writeArithmetic(operator)
         elif self.token_tag() in ["integerConstant", "stringConstant", "keywordConstant"]:
-            # constant
+            # integer constants:
+            if self.token_tag() == "integerConstant":
+                integer = self.token_content()
+                self.vmwriter.writePush("constant", integer)
             self.write_token()
         elif self.token_content() == "(":
             # (
@@ -436,13 +438,16 @@ class CompilationEngine():
         self.write_tag("</term>")
 
     def compileSubroutineCall(self):
+        # get the subroutine name. This has to be passed to vm writer's writeCall function at the end.
+        subroutine_name = self.token_content()
+        # initialize args to zero
+        args = 0
         self.get_next_token()
         look_ahead_token = self.token_content()
         self.go_back_one_token()
         # subroutine call
         if look_ahead_token == "(":
             # subroutineName
-            self.write_token()
             # (
             self.get_next_token()
             self.write_token()
@@ -458,13 +463,14 @@ class CompilationEngine():
             self.write_token()
         elif look_ahead_token == ".":
             # className|varName
-            self.write_token()
             # .
             self.get_next_token()
-            self.write_token()
+            # add the dot to the method call
+            subroutine_name += self.token_content()
             # subroutineName
             self.get_next_token()
-            self.write_token()
+            # add the actual subroutine name to the whole method call
+            subroutine_name += self.token_content()
             # (
             self.get_next_token()
             self.write_token()
@@ -478,6 +484,8 @@ class CompilationEngine():
             # ) 
             self.get_next_token()
             self.write_token()
+        # At the very end, call the subroutine with the correct number of arguments
+        self.vmwriter.writeCall(subroutine_name, args)
 
     def is_valid_identifier(self):
         if self.token_content()[0].isdigit():

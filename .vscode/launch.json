@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/projects/compiler/main.py",
             "console": "integratedTerminal",
-            "args": ["${workspaceFolder}/projects/11/Average"]
+            "args": ["${workspaceFolder}/projects/11/Seven"]
         }
     ]
 }
