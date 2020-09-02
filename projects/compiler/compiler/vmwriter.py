@@ -3,10 +3,10 @@ OPERATORS = {
     "-":"sub",
     "*":"call Math.multiply 2",
     "/":"call Math.divide 2",
-    "&amp":"and",
+    "&amp;":"and",
     "|":"or",
-    "&lt":"lt",
-    "&gt":"gt",
+    "&lt;":"lt",
+    "&gt;":"gt",
     "=":"eq",
     "--":"neg",
     "~":"not"
@@ -45,8 +45,8 @@ class VMWriter():
     def writeCall(self, label, args):
         self.writex(f"call {label} {args}\n")
 
-    def writeFunction(self, label):
-        self.writex(f"function {label}\n")
+    def writeFunction(self, label_n_params):
+        self.writex(f"function {label_n_params}\n")
 
     def writeReturn(self):
         self.writex(f"return\n")

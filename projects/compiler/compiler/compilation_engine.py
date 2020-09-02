@@ -16,6 +16,7 @@ class CompilationEngine():
         self.idx = -1
         self.indent_level = 0
         self.current_class = ""
+        self.current_function_type = ""
         self.vmwriter = vmwriter.VMWriter(vm_file)
         self.symbol_table = symboltable.SymbolTable()
 
@@ -107,7 +108,7 @@ class CompilationEngine():
         # constructor|method|function
         # type
         self.get_next_token()
-        subroutine_type = self.token_content()
+        self.current_function_type = self.token_content()
         # subroutine Name
         self.get_next_token()
         subroutine_name = self.token_content()
@@ -115,20 +116,18 @@ class CompilationEngine():
         self.get_next_token()
         # param list
         self.get_next_token()
+        params = 0
         if self.token_content() != ")":
-            self.compileParameterList()
+            params += self.compileParameterList()
             # params list exits with token already moved forward
         # closed paren
-        self.vmwriter.writeFunction(f"{self.current_class}.{subroutine_name}")
+        self.vmwriter.writeFunction(f"{self.current_class}.{subroutine_name} {params}")
         # subroutine Body
         self.get_next_token()
         self.compileSubroutineBody()
-        # If subroutine type is void, then the value in stack should be popped to temp
-        if subroutine_type == "void":
-            self.vmwriter.writePop("temp", "0")
 
     def compileParameterList(self):
-        args = 1
+        params = 1
         # type
         self.write_token()
         # varName
@@ -137,7 +136,7 @@ class CompilationEngine():
         # check for comma to see if more variables
         self.get_next_token()
         while self.token_content() == ",":
-            args += 1
+            params += 1
             # ,
             self.write_token()
             # type
@@ -148,7 +147,7 @@ class CompilationEngine():
             self.write_token()
             # check for comma
             self.get_next_token()
-        return args
+        return params
 
     def compileSubroutineBody(self):
         # clear symbol subroutine table
@@ -340,8 +339,13 @@ class CompilationEngine():
             self.get_next_token()
         # ;
         # tag
-        # Vm writer needs to write return now
-        self.vmwriter.writeReturn()
+        # Vm writer needs to write return now. Remember to push and pop for void functions.
+        if self.current_function_type == "void":
+            self.vmwriter.writePush("constant", "0")
+            self.vmwriter.writeReturn()
+            self.vmwriter.writePop("temp", "0")
+        else:
+            self.vmwriter.writeReturn()
 
     def compileExpression(self):
         # the current token is already loaded and there is no need to call get_next_token first
@@ -365,6 +369,7 @@ class CompilationEngine():
 
     def compileExpressionList(self):
         # if current token is just closed paren, then just return
+        args = 1
         if self.token_content() == ")":
             self.go_back_one_token()
             return
@@ -373,6 +378,7 @@ class CompilationEngine():
         # check if next token is comma
         self.get_next_token()
         while self.token_content() == ",":
+            args += 1
             # ,
             self.write_token()
             # expression
@@ -380,7 +386,8 @@ class CompilationEngine():
             self.compileExpression()
             # get next token to check while loop
             self.get_next_token()
-        self.go_back_one_token()        
+        self.go_back_one_token()
+        return args     
 
     def compileTerm(self):
         # the first term is already loaded and no need to call next_token from the start
@@ -455,7 +462,7 @@ class CompilationEngine():
             self.get_next_token()
             self.write_tag("<expressionList>")
             self.increase_indent()
-            self.compileExpressionList()
+            args += self.compileExpressionList()
             self.decrease_indent()
             self.write_tag("</expressionList>")
             # ) 
@@ -478,13 +485,13 @@ class CompilationEngine():
             self.get_next_token()
             self.write_tag("<expressionList>")
             self.increase_indent()
-            self.compileExpressionList()
+            args += self.compileExpressionList()
             self.decrease_indent()
             self.write_tag("</expressionList>")
             # ) 
             self.get_next_token()
             self.write_token()
-        # At the very end, call the subroutine with the correct number of arguments
+        # At the very end, call the subroutine with the correct number of arguments. The number of arguments depends on the amount of commas found in expression list.
         self.vmwriter.writeCall(subroutine_name, args)
 
     def is_valid_identifier(self):
