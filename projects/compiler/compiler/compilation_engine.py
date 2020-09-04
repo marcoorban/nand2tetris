@@ -1,4 +1,5 @@
 import re
+import sys
 from compiler import vmwriter
 from compiler import symboltable
 
@@ -17,6 +18,7 @@ class CompilationEngine():
         self.indent_level = 0
         self.current_class = ""
         self.current_function_type = ""
+        self.labelno = -1
         self.vmwriter = vmwriter.VMWriter(vm_file)
         self.symbol_table = symboltable.SymbolTable()
 
@@ -105,6 +107,8 @@ class CompilationEngine():
         # ;
 
     def compileSubroutineDec(self):
+        # erase the symbol table and start a new one
+        self.symbol_table.startSubroutine()
         # constructor|method|function
         # type
         self.get_next_token()
@@ -112,6 +116,7 @@ class CompilationEngine():
         # subroutine Name
         self.get_next_token()
         subroutine_name = self.token_content()
+        self.vmwriter.writeComment(f"START OF {self.current_class}.{subroutine_name}")
         # open paren
         self.get_next_token()
         # param list
@@ -121,47 +126,46 @@ class CompilationEngine():
             params += self.compileParameterList()
             # params list exits with token already moved forward
         # closed paren
-        self.vmwriter.writeFunction(f"{self.current_class}.{subroutine_name} {params}")
         # subroutine Body
         self.get_next_token()
-        self.compileSubroutineBody()
+        self.compileSubroutineBody(f"{self.current_class}.{subroutine_name}")
 
     def compileParameterList(self):
         params = 1
         # type
-        self.write_token()
+        varType = self.token_content()
         # varName
         self.get_next_token()
-        self.write_token()
+        varName = self.token_content()
+        # add to symbol table
+        self.symbol_table.define(varName, varType, "arg")
         # check for comma to see if more variables
         self.get_next_token()
         while self.token_content() == ",":
             params += 1
             # ,
-            self.write_token()
             # type
             self.get_next_token()
-            self.write_token()
+            varType = self.token_content()
             # varname
             self.get_next_token()
-            self.write_token()
+            varName = self.token_content()
+            # add to symbol table
+            self.symbol_table.define(varName, varType, "arg")
             # check for comma
             self.get_next_token()
         return params
 
-    def compileSubroutineBody(self):
+    def compileSubroutineBody(self, fname):
         # clear symbol subroutine table
-        self.symbol_table.startSubroutine()
         # increase the vm writer indent for easier reading
-        self.vmwriter.increase_indent()
         # {
         self.write_token()
         # varDec*
         # check for var token to see if more vars declared
         self.get_next_token()
+        # Adding variables to the symbol table
         while self.token_content() == "var":
-            self.write_tag("<varDec>")
-            self.increase_indent()
             # var
             varkind = self.token_content()
             # type
@@ -186,16 +190,12 @@ class CompilationEngine():
             # ;
             # check if next keyword is var for while loop
             self.get_next_token()
-
+        # Now that the symbol table has been created, the vmwriter can write function (function name) (no of local vars)
+        self.vmwriter.writeFunction(fname, self.symbol_table.varCount("var"))
         # statements
         self.compileStatements()
         # }
         self.get_next_token()
-        # decrease the vm writer's indent for easier reading.
-        self.vmwriter.decrease_indent()
-        # close tag
-        """Delete this later"""
-        print(self.symbol_table)
 
     def compileStatements(self):
         while self.token_content() in ["let", "if", "while", "do", "return"]:
@@ -211,112 +211,115 @@ class CompilationEngine():
                 self.compileReturn()
             # get next token to keep checking while loop
             self.get_next_token()
-        self.go_back_one_token()
-        self.decrease_indent()
-        self.write_tag("</statements>")        
+        self.go_back_one_token()     
 
     def compileLet(self):
-        self.write_tag("<letStatement>")
-        self.increase_indent()
         # let
-        self.write_token()
         # varName
         self.get_next_token()
-        self.write_token()
+        varName = self.token_content()
+        # check if the variable exists in the symbol table. If it doesn't exist, then raise an error.
+        if not self.symbol_table.segmentOf(varName):
+            sys.exit(f"Compiler error: variable {self.token_content()} referenced before initialized.")
         # check for open square bracket
         self.get_next_token()
         if self.token_content() == '[':
             # [
-            self.write_token()
             # expression
             self.get_next_token()
             self.compileExpression()
             # ]
             self.get_next_token()
-            self.write_token()
             # go to equal sign
             self.get_next_token()
         # =
-        self.write_token()
         # expression
         self.get_next_token()
         self.compileExpression()
+        # after Expression is compiled, push the value to the variable
+        self.vmwriter.writePop(self.symbol_table.segmentOf(varName), self.symbol_table.indexOf(varName))
         # ;
         self.get_next_token()
-        self.write_token()
         # tag
-        self.decrease_indent()
-        self.write_tag("</letStatement>")
 
     def compileIf(self):
-        self.write_tag("<ifStatement>")
-        self.increase_indent()
+        self.labelno += 1
+        label = self.labelno
+        L1 = f"IF_FALSE{label}"
+        L2 = f"IF_TRUE{label}"
         # if
-        self.write_token()
         # open paren
         self.get_next_token()
-        self.write_token()
+        # COMPILED EXPRESSION
         # expression
         self.get_next_token()
         self.compileExpression()
         # closed paren
+        # NOT
+        self.vmwriter.writeArithmetic("~")
+        # IF_GOTO L1
+        self.vmwriter.writeIf(L1)
         self.get_next_token()
-        self.write_token()
         # {
         self.get_next_token()
-        self.write_token()
+        # COMPILED STATEMENTS
         # statements
         self.get_next_token()
         self.compileStatements()
         # }
+        # GOTO L2
+        self.vmwriter.writeGoto(L2)
         self.get_next_token()
-        self.write_token()
         # check for else keyword
         self.get_next_token()
         look_ahead_token = self.token_content()
         self.go_back_one_token()
+        self.vmwriter.writeLabel(L1)
+        # COMPILE ELSE STATEMENTS (IF THERE'S ANY)
         if look_ahead_token == "else":
             # else
             self.get_next_token()
-            self.write_token()
             # {
             self.get_next_token()
-            self.write_token()
             # statements
             self.get_next_token()
             self.compileStatements()
             # }
             self.get_next_token()
-            self.write_token()
-            # we need to go forward one so we can then go backwards one outside of if statement
-        self.decrease_indent()
-        self.write_tag("</ifStatement>")
+        # LABEL 2 AND CONTINUE EXECUTION OF THE CODE
+        self.vmwriter.writeLabel(L2)
 
     def compileWhile(self):
-        self.write_tag("<whileStatement>")
-        self.increase_indent()
+        self.labelno += 1
+        label = str(self.labelno)
+        L1 = f"WHILE_FALSE{label}"
+        L2 = f"WHILE_TRUE{label}"
         # while
-        self.write_token()
+        # LABEL L1
+        self.vmwriter.writeLabel(L1)
         # open paren
         self.get_next_token()
-        self.write_token()
+        # STATEMENTS
         # expression
         self.get_next_token()
         self.compileExpression()
         # closed paren
         self.get_next_token()
-        self.write_token()
+        # NEGATE AND IF-GOTO L2
+        self.vmwriter.writeArithmetic("~")
+        self.vmwriter.writeIf(L2)
+        # STATEMENTS AGAIN
         # {
         self.get_next_token()
-        self.write_token()
         # statements
         self.get_next_token()
         self.compileStatements()
         # }
+        # GOTO L1
+        self.vmwriter.writeGoto(L1)
         self.get_next_token()
-        self.write_token()
-        self.decrease_indent()
-        self.write_tag("</whileStatement>")
+        self.vmwriter.writeLabel(L2)
+        self.labelno += 1
 
     def compileDo(self):
         # do 
@@ -423,23 +426,30 @@ class CompilationEngine():
                 operator = "--"
             # write the unary op at the end of the term compilation
             self.vmwriter.writeArithmetic(operator)
-        elif self.token_tag() in ["integerConstant", "stringConstant", "keywordConstant"]:
+        elif self.token_tag() in ["integerConstant", "stringConstant", "keyword"]:
             # integer constants:
             if self.token_tag() == "integerConstant":
                 integer = self.token_content()
                 self.vmwriter.writePush("constant", integer)
-            self.write_token()
+            # keyworkConstants:
+            if self.token_content() in ["null", "false"]:
+                self.vmwriter.writePush("constant", "0")
+            elif self.token_content() == "true":
+                self.vmwriter.writePush("constant", "1")
+                self.vmwriter.writeArithmetic("--")
         elif self.token_content() == "(":
             # (
-            self.write_token()
             # expression
             self.get_next_token()
             self.compileExpression()
             # )
             self.get_next_token()
-            self.write_token()
+        # If none of the above work, then the current token is a variable and should be looked up in the symbol table, and then pushed
         else:
             #varname
+            segment = self.symbol_table.segmentOf(self.token_content())
+            index = self.symbol_table.indexOf(self.token_content())
+            self.vmwriter.writePush(segment, index)
             self.write_token()
         self.decrease_indent()
         self.write_tag("</term>")
@@ -457,17 +467,11 @@ class CompilationEngine():
             # subroutineName
             # (
             self.get_next_token()
-            self.write_token()
             # expressionList
             self.get_next_token()
-            self.write_tag("<expressionList>")
-            self.increase_indent()
             args += self.compileExpressionList()
-            self.decrease_indent()
-            self.write_tag("</expressionList>")
             # ) 
             self.get_next_token()
-            self.write_token()
         elif look_ahead_token == ".":
             # className|varName
             # .
@@ -480,17 +484,11 @@ class CompilationEngine():
             subroutine_name += self.token_content()
             # (
             self.get_next_token()
-            self.write_token()
             # expressionList
             self.get_next_token()
-            self.write_tag("<expressionList>")
-            self.increase_indent()
             args += self.compileExpressionList()
-            self.decrease_indent()
-            self.write_tag("</expressionList>")
             # ) 
             self.get_next_token()
-            self.write_token()
         # At the very end, call the subroutine with the correct number of arguments. The number of arguments depends on the amount of commas found in expression list.
         self.vmwriter.writeCall(subroutine_name, args)
 
@@ -499,6 +497,11 @@ class CompilationEngine():
             return False
         if re.match(r'^[A-Za-z0-9_]+$', self.token_content()[1:]):
             return True
+
+    def add_to_symbol_table(self):
+
+        return
+
         
 
 

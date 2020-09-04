@@ -1,0 +1,9 @@
+label ASDF
+push constant 1
+neg
+if-goto ZXCV
+push constant 1
+label ASDF
+push constant 2
+label ZXCV
+push constant 3

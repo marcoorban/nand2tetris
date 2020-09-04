@@ -1,0 +1,26 @@
+class Main{
+
+    function void main(){
+        var int i;
+        let i = 0;
+        while (i < 3){
+            do Memory.poke(8000 + i, 300);
+            let i = i + 1;
+            do Main.greaterthanfive(i);
+        }
+        return;
+    }
+
+    function void greaterthanfive(int n) {
+        let n = n * 2;
+        do Output.printInt(n);
+        if (n > 5){
+            do Output.printInt(6);
+        }
+        else {
+            do Output.printInt(3);
+        }
+        return;
+    }
+
+}

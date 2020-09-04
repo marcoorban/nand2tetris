@@ -12,6 +12,12 @@ OPERATORS = {
     "~":"not"
 }
 
+KEYWORD_CONSTANTS = {
+    "null":"0",
+    "false":"0",
+    "true":"1" # this has to be negated later since true = -1
+}
+
 class VMWriter():
 
     def __init__(self, vm_file):
@@ -45,13 +51,15 @@ class VMWriter():
     def writeCall(self, label, args):
         self.writex(f"call {label} {args}\n")
 
-    def writeFunction(self, label_n_params):
-        self.writex(f"function {label_n_params}\n")
+    def writeFunction(self, label, localvars):
+        self.writex(f"function {label} {localvars}\n")
 
     def writeReturn(self):
         self.writex(f"return\n")
 
     def writex(self, content):
-        spaces = "  " * self.indent_level
-        self.vm.write(f"{spaces}{content}" )
+        self.vm.write(f"{content}" )
+
+    def writeComment(self, comment):
+        self.vm.write(f"// {comment}\n")
 

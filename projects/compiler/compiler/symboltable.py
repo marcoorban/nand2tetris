@@ -19,16 +19,16 @@ class SymbolTable():
     def define(self, name, varType, kind):
         if kind == "static":
             self.staticNo += 1
-            self.class_table[name] = {"type":varType, "kind":kind, "no":self.staticNo}
+            self.class_table[name] = {"type":varType, "segment":kind, "no":self.staticNo}
         elif kind == "field":
             self.fieldNo += 1
-            self.class_table[name] = {"type":varType, "kind":kind, "no":self.fieldNo}
+            self.class_table[name] = {"type":varType, "segment":kind, "no":self.fieldNo}
         elif kind == "var":
             self.varNo += 1
-            self.subroutine_table[name] = {"type":varType, "kind":kind, "no":self.varNo}
+            self.subroutine_table[name] = {"type":varType, "segment":"local", "no":self.varNo}
         elif kind == "arg":
             self.argNo += 1
-            self.subroutine_table[name] = {"type":varType, "kind":kind, "no":self.argNo}
+            self.subroutine_table[name] = {"type":varType, "segment":"argument", "no":self.argNo}
         else: 
             raise ValueError("Variable kind not recognized!")
 
@@ -42,12 +42,12 @@ class SymbolTable():
         elif kind == "arg":
             return self.argNo + 1
 
-    def kindOf(self, name):
+    def segmentOf(self, name):
         try:
-            return self.subroutine_table[name]["kind"]
+            return self.subroutine_table[name]["segment"]
         except KeyError:
             try:
-                return self.class_table[name]["kind"]
+                return self.class_table[name]["segment"]
             except:
                 return None
 
