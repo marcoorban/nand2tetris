@@ -22,7 +22,7 @@ class SymbolTable():
             self.class_table[name] = {"type":varType, "segment":kind, "no":self.staticNo}
         elif kind == "field":
             self.fieldNo += 1
-            self.class_table[name] = {"type":varType, "segment":kind, "no":self.fieldNo}
+            self.class_table[name] = {"type":varType, "segment":"this", "no":self.fieldNo}
         elif kind == "var":
             self.varNo += 1
             self.subroutine_table[name] = {"type":varType, "segment":"local", "no":self.varNo}

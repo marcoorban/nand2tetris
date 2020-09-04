@@ -15,9 +15,8 @@ class CompilationEngine():
         self.tokens = self.get_tokens(token_file)
         self.current_token = ''
         self.idx = -1
-        self.indent_level = 0
         self.current_class = ""
-        self.current_function_type = ""
+        self.ftype = ""
         self.labelno = -1
         self.vmwriter = vmwriter.VMWriter(vm_file)
         self.symbol_table = symboltable.SymbolTable()
@@ -38,12 +37,6 @@ class CompilationEngine():
         self.idx -= 1
         self.current_token = self.tokens[self.idx]
 
-    def increase_indent(self):
-        self.indent_level += 1
-
-    def decrease_indent(self):
-        self.indent_level -= 1
-
     def write_token(self):
         pass
 
@@ -57,7 +50,6 @@ class CompilationEngine():
         return self.current_token.split(">")[0].split("<")[-1].strip()
 
     def compileClass(self):
-        self.increase_indent()
         # class
         self.get_next_token()
         # className
@@ -78,10 +70,6 @@ class CompilationEngine():
             # get next token to perform the while check
             self.get_next_token()
         # }
-        self.write_token()
-        # close tag
-        self.decrease_indent()
-        self.write_tag("</class>")
 
     def compileClassVarDec(self):
         # static|field
@@ -112,7 +100,7 @@ class CompilationEngine():
         # constructor|method|function
         # type
         self.get_next_token()
-        self.current_function_type = self.token_content()
+        self.ftype = self.token_content()
         # subroutine Name
         self.get_next_token()
         subroutine_name = self.token_content()
@@ -122,6 +110,11 @@ class CompilationEngine():
         # param list
         self.get_next_token()
         params = 0
+        # If the current function is a method, then arg[0] should be assigned to THIS, which is the address of the current object.
+        if self.ftype == "method":
+            self.symbol_table.define("this", f"{self.current_class}", "arg")
+            params += 1
+
         if self.token_content() != ")":
             params += self.compileParameterList()
             # params list exits with token already moved forward
@@ -192,6 +185,15 @@ class CompilationEngine():
             self.get_next_token()
         # Now that the symbol table has been created, the vmwriter can write function (function name) (no of local vars)
         self.vmwriter.writeFunction(fname, self.symbol_table.varCount("var"))
+        # if the subroutine is a constructor, push number of args and call Alloc.
+        if self.ftype == "constructor":
+            size = self.symbol_table.varCount("field")
+            self.vmwriter.writePush(f"constant", f"{size}")
+            self.vmwriter.writeCall("Memory.alloc", "1")
+            self.vmwriter.writePop("pointer", "0")
+        elif self.ftype == "method":
+            self.vmwriter.writePush("argument", "0")
+            self.vmwriter.writePop("pointer", "0")
         # statements
         self.compileStatements()
         # }
