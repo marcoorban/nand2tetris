@@ -17,6 +17,7 @@ class CompilationEngine():
         self.idx = -1
         self.current_class = ""
         self.ftype = ""
+        self.returntype = ""
         self.labelno = -1
         self.vmwriter = vmwriter.VMWriter(vm_file)
         self.symbol_table = symboltable.SymbolTable()
@@ -99,8 +100,9 @@ class CompilationEngine():
         self.symbol_table.startSubroutine()
         # constructor|method|function
         # type
-        self.get_next_token()
         self.ftype = self.token_content()
+        self.get_next_token()
+        self.returntype = self.token_content()
         # subroutine Name
         self.get_next_token()
         subroutine_name = self.token_content()
@@ -191,6 +193,7 @@ class CompilationEngine():
             self.vmwriter.writePush(f"constant", f"{size}")
             self.vmwriter.writeCall("Memory.alloc", "1")
             self.vmwriter.writePop("pointer", "0")
+        # if the subroutine is a method, then push argument 0 (the address of the object) and pop it into pointer 0 so that the this segment can be aligned with the start of the object.
         elif self.ftype == "method":
             self.vmwriter.writePush("argument", "0")
             self.vmwriter.writePop("pointer", "0")
@@ -332,8 +335,6 @@ class CompilationEngine():
         self.get_next_token()
         self.write_token()
         # tag
-        self.decrease_indent()
-        self.write_tag("</doStatement>")
 
     def compileReturn(self):
         # return
@@ -345,10 +346,14 @@ class CompilationEngine():
         # ;
         # tag
         # Vm writer needs to write return now. Remember to push and pop for void functions.
-        if self.current_function_type == "void":
+        if self.returntype == "void":
             self.vmwriter.writePush("constant", "0")
             self.vmwriter.writeReturn()
             self.vmwriter.writePop("temp", "0")
+        # If the function is a constructor, we need to push pointer 0 to the stack, since this is the address of the object that must be returned to the caller
+        elif self.ftype == "constructor":
+            self.vmwriter.writePush("pointer", "0")
+            self.vmwriter.writeReturn()
         else:
             self.vmwriter.writeReturn()
 
@@ -369,15 +374,14 @@ class CompilationEngine():
             self.get_next_token()
         # must go back one token because this function is always followed by a get next token, and we've moved one token forward to check the while loop.
         self.go_back_one_token()
-        self.decrease_indent()
-        self.write_tag("</expression>")
 
     def compileExpressionList(self):
         # if current token is just closed paren, then just return
-        args = 1
+        args = 0
         if self.token_content() == ")":
             self.go_back_one_token()
-            return
+            return args
+        args += 1
         # expression
         self.compileExpression()
         # check if next token is comma
@@ -439,6 +443,8 @@ class CompilationEngine():
             elif self.token_content() == "true":
                 self.vmwriter.writePush("constant", "1")
                 self.vmwriter.writeArithmetic("--")
+            elif self.token_content() == "this":
+                self.vmwriter.writePush("argument", "0")
         elif self.token_content() == "(":
             # (
             # expression
@@ -453,11 +459,10 @@ class CompilationEngine():
             index = self.symbol_table.indexOf(self.token_content())
             self.vmwriter.writePush(segment, index)
             self.write_token()
-        self.decrease_indent()
-        self.write_tag("</term>")
 
     def compileSubroutineCall(self):
         # get the subroutine name. This has to be passed to vm writer's writeCall function at the end.
+        callLabel = ""
         subroutine_name = self.token_content()
         # initialize args to zero
         args = 0
@@ -466,6 +471,7 @@ class CompilationEngine():
         self.go_back_one_token()
         # subroutine call
         if look_ahead_token == "(":
+            callLabel = self.current_class + '.' + subroutine_name
             # subroutineName
             # (
             self.get_next_token()
@@ -474,16 +480,24 @@ class CompilationEngine():
             args += self.compileExpressionList()
             # ) 
             self.get_next_token()
+            # push the value of THIS (pointer 0) to the stack
+            self.vmwriter.writePush("pointer", "0")
+            args += 1
         elif look_ahead_token == ".":
             # className|varName
+            # First we have to determine what class of object it is
+            class_name = self.token_content()
+            objectName = class_name
+            callLabel += class_name
             # .
             self.get_next_token()
             # add the dot to the method call
-            subroutine_name += self.token_content()
+            callLabel += self.token_content()
             # subroutineName
             self.get_next_token()
+            subroutine_name = self.token_content()
             # add the actual subroutine name to the whole method call
-            subroutine_name += self.token_content()
+            callLabel += subroutine_name
             # (
             self.get_next_token()
             # expressionList
@@ -491,8 +505,14 @@ class CompilationEngine():
             args += self.compileExpressionList()
             # ) 
             self.get_next_token()
-        # At the very end, call the subroutine with the correct number of arguments. The number of arguments depends on the amount of commas found in expression list.
-        self.vmwriter.writeCall(subroutine_name, args)
+
+        # The following code runs if the current subroutine call is a method of an existing object. If so, then the first argument passed should be the memory location of the object, which is saved in the variable that it has been assigned to. The way the compiler knows if it's a method is by checking if the current object actually exists. Otherwise, it's just a function of an existing class, this piece of code won't run, and the label and arguments will be the ones set in the code that goes before this section.
+            if self.symbol_table.segmentOf(objectName):
+                callLabel = self.symbol_table.typeOf(objectName) + "." + subroutine_name
+                self.vmwriter.writePush(self.symbol_table.segmentOf(objectName), self.symbol_table.indexOf(objectName))
+                args += 1
+
+        self.vmwriter.writeCall(callLabel, args)
 
     def is_valid_identifier(self):
         if self.token_content()[0].isdigit():

@@ -83,7 +83,7 @@ class CodeWriter():
             self.output_file.write("A=M+D\n")
             # Save destination address to D register
             self.output_file.write("D=M\n")
-        elif segment in ["pointer","temp"]:
+        elif segment in ["pointer", "temp"]:
             self.output_file.write(f"@{index}\n")
             self.output_file.write("D=A\n")
             self.output_file.write(f"@R{CodeWriter.segments[segment]}\n")
