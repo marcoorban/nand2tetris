@@ -219,6 +219,7 @@ class CompilationEngine():
         self.go_back_one_token()     
 
     def compileLet(self):
+        array_on_left = False
         # let
         # varName
         self.get_next_token()
@@ -229,11 +230,14 @@ class CompilationEngine():
         # check for open square bracket
         self.get_next_token()
         if self.token_content() == '[':
+            array_on_left = True
+            self.vmwriter.writePush(self.symbol_table.segmentOf(varName), self.symbol_table.indexOf(varName))
             # [
             # expression
             self.get_next_token()
             self.compileExpression()
             # ]
+            self.vmwriter.writeArithmetic("+")
             self.get_next_token()
             # go to equal sign
             self.get_next_token()
@@ -241,8 +245,15 @@ class CompilationEngine():
         # expression
         self.get_next_token()
         self.compileExpression()
-        # after Expression is compiled, push the value to the variable
-        self.vmwriter.writePop(self.symbol_table.segmentOf(varName), self.symbol_table.indexOf(varName))
+        # after Expression is compiled and the left hand side is not an array, then we just directly pop the value of the expression to the variable in memory segment
+        if not array_on_left:
+            self.vmwriter.writePop(self.symbol_table.segmentOf(varName), self.symbol_table.indexOf(varName))
+        # if the lhs is an array, then we first pop the value of the expression to temp 0 before manipulating segments and finally popping it to the correct array location.
+        else:
+            self.vmwriter.writePop("temp", "0")
+            self.vmwriter.writePop("pointer", "1")
+            self.vmwriter.writePush("temp", "0")
+            self.vmwriter.writePop("that", "0")
         # ;
         self.get_next_token()
         # tag
@@ -350,10 +361,6 @@ class CompilationEngine():
             self.vmwriter.writePush("constant", "0")
             self.vmwriter.writeReturn()
             self.vmwriter.writePop("temp", "0")
-        # If the function is a constructor, we need to push pointer 0 to the stack, since this is the address of the object that must be returned to the caller
-        elif self.ftype == "constructor":
-            self.vmwriter.writePush("pointer", "0")
-            self.vmwriter.writeReturn()
         else:
             self.vmwriter.writeReturn()
 
@@ -406,9 +413,13 @@ class CompilationEngine():
         self.go_back_one_token()
         if look_ahead_token in ['[', '(', '.'] and self.is_valid_identifier():
             if look_ahead_token == '[':
+                # This would be an array.
                 # varName[expression]
                 # varname
                 self.write_token()
+                a = self.symbol_table.segmentOf(self.token_content())
+                b = self.symbol_table.indexOf(self.token_content())
+                self.vmwriter.writePush(a, b)
                 # [
                 self.get_next_token()
                 self.write_token()
@@ -416,6 +427,9 @@ class CompilationEngine():
                 self.get_next_token()
                 self.compileExpression()
                 # ]
+                self.vmwriter.writeArithmetic("+")
+                self.vmwriter.writePop("pointer", "1")
+                self.vmwriter.writePush("that", "0")
                 self.get_next_token()
                 self.write_token()
             else:
@@ -437,14 +451,28 @@ class CompilationEngine():
             if self.token_tag() == "integerConstant":
                 integer = self.token_content()
                 self.vmwriter.writePush("constant", integer)
-            # keyworkConstants:
-            if self.token_content() in ["null", "false"]:
+            # keyword Constants:
+            # Boolean values
+            elif self.token_content() in ["null", "false"]:
                 self.vmwriter.writePush("constant", "0")
             elif self.token_content() == "true":
                 self.vmwriter.writePush("constant", "1")
                 self.vmwriter.writeArithmetic("--")
+            # Handling THIS
             elif self.token_content() == "this":
-                self.vmwriter.writePush("argument", "0")
+                self.vmwriter.writePush("pointer", "0")
+            # Strings
+            elif self.token_tag() == "stringConstant":
+                # push the length of the string
+                length = len(self.token_content())
+                self.vmwriter.writePush("constant", str(length))
+                # create a new String
+                self.vmwriter.writeCall("String.new", "1")
+                # convert each char to its ascii code and append to string
+                for i in range(len(self.token_content())):
+                    char = self.token_content()[i]
+                    self.vmwriter.writePush("constant", str(ord(char)))
+                    self.vmwriter.writeCall("String.appendChar", "2")
         elif self.token_content() == "(":
             # (
             # expression
@@ -461,18 +489,26 @@ class CompilationEngine():
             self.write_token()
 
     def compileSubroutineCall(self):
-        # get the subroutine name. This has to be passed to vm writer's writeCall function at the end.
-        callLabel = ""
-        subroutine_name = self.token_content()
+        isObject = False
         # initialize args to zero
         args = 0
         self.get_next_token()
         look_ahead_token = self.token_content()
         self.go_back_one_token()
+        # First we need to determine if the subroutine that is being called belongs to an existing object. If that is the case, the first argument that must be pushed is the object's address in RAM.
+        object_name = self.token_content()
+        if self.symbol_table.segmentOf((object_name)):
+            isObject = True
+            args += 1
+            self.vmwriter.writePush(self.symbol_table.segmentOf(object_name), self.symbol_table.indexOf(object_name))
+
         # subroutine call
         if look_ahead_token == "(":
-            callLabel = self.current_class + '.' + subroutine_name
-            # subroutineName
+            # If the current token is open parenthesis, then the "object_name" variable actually contains a function name, so we must append this to the class of the current function to form the label
+            args += 1
+            # push the value of the current object, located in pointer 0, to the stack
+            self.vmwriter.writePush("pointer", "0")
+            callLabel = self.current_class + '.' + object_name
             # (
             self.get_next_token()
             # expressionList
@@ -480,24 +516,19 @@ class CompilationEngine():
             args += self.compileExpressionList()
             # ) 
             self.get_next_token()
-            # push the value of THIS (pointer 0) to the stack
-            self.vmwriter.writePush("pointer", "0")
-            args += 1
         elif look_ahead_token == ".":
-            # className|varName
-            # First we have to determine what class of object it is
-            class_name = self.token_content()
-            objectName = class_name
-            callLabel += class_name
+            # If the current token is a dot, then the current token will either contain the class name (in the case of a function) or the object name (in the case of a method). 
+            if isObject:
+                callLabel = self.symbol_table.typeOf(object_name)
+            else:
+                callLabel = self.token_content()
             # .
             self.get_next_token()
             # add the dot to the method call
             callLabel += self.token_content()
             # subroutineName
             self.get_next_token()
-            subroutine_name = self.token_content()
-            # add the actual subroutine name to the whole method call
-            callLabel += subroutine_name
+            callLabel += self.token_content()
             # (
             self.get_next_token()
             # expressionList
@@ -506,17 +537,13 @@ class CompilationEngine():
             # ) 
             self.get_next_token()
 
-        # The following code runs if the current subroutine call is a method of an existing object. If so, then the first argument passed should be the memory location of the object, which is saved in the variable that it has been assigned to. The way the compiler knows if it's a method is by checking if the current object actually exists. Otherwise, it's just a function of an existing class, this piece of code won't run, and the label and arguments will be the ones set in the code that goes before this section.
-            if self.symbol_table.segmentOf(objectName):
-                callLabel = self.symbol_table.typeOf(objectName) + "." + subroutine_name
-                self.vmwriter.writePush(self.symbol_table.segmentOf(objectName), self.symbol_table.indexOf(objectName))
-                args += 1
-
         self.vmwriter.writeCall(callLabel, args)
 
     def is_valid_identifier(self):
         if self.token_content()[0].isdigit():
             return False
+        if len(self.token_content()) == 1 and self.token_content().isalpha():
+            return True
         if re.match(r'^[A-Za-z0-9_]+$', self.token_content()[1:]):
             return True
 
