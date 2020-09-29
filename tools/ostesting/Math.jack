@@ -9,30 +9,25 @@
  */
 class Math {
 
-    static Array twoToTheJ;
+    static Array twoToThe;
+    static int NUM_BITS;
 
     /** Initializes the library. */
     function void init() {
         // The jth member of this array contains the value of 2 to the jth.
-        let twoToTheJ = Array.new(15);
-
-        let twoToTheJ[0] = 1;
-        let twoToTheJ[1] = 2;
-        let twoToTheJ[2] = 4;
-        let twoToTheJ[3] = 8;
-        let twoToTheJ[4] = 16;
-        let twoToTheJ[5] = 32;
-        let twoToTheJ[6] = 64;
-        let twoToTheJ[7] = 128;
-        let twoToTheJ[8] = 256;
-        let twoToTheJ[9] = 512;
-        let twoToTheJ[10] = 1024;
-        let twoToTheJ[11] = 2048;
-        let twoToTheJ[12] = 4096;
-        let twoToTheJ[13] = 8192;
-        let twoToTheJ[14] = 16384;
-        let twoToTheJ[15] = 32768;
+        var int i;
+        var int currentVal;
+        let NUM_BITS = 16;
+        let currentVal = 1;
+        let twoToThe = Array.new(16);
+        let i = 0;
+        while (i < NUM_BITS){
+            let twoToThe[i] = currentVal;
+            let currentVal = currentVal + currentVal;
+            let i = i + 1;
+        }
         return;
+
     }
 
     /** Returns the absolute value of x. */
@@ -51,26 +46,22 @@ class Math {
      *  the Jack expressions x*y and multiply(x,y) return the same value.
      */
     function int multiply(int x, int y) {
-        var int sum, shiftedX, numOfbits, i;
+        var int sum, shiftedX, i;
         let sum = 0;
         let shiftedX = x;
-        let numOfbits = 16;
         let i = 0; 
-        while (i < numOfbits){
-            if (Math.bit(y, i)) {
+        while (i < NUM_BITS){
+            if (Math.bit(y, i) = true) {
                 let sum = sum + shiftedX;
             }
-            let i = i + 1;
             let shiftedX = shiftedX + shiftedX;
+            let i = i + 1;
         }
         return sum;
     }
 
     function boolean bit(int x, int j) {
-        if (x & twoToTheJ[j] = 0){
-            return false;
-        }        
-        return true;
+        return ~((x & twoToThe[j]) = 0);
     }
 
     /** Returns the integer part of x/y.
@@ -79,43 +70,52 @@ class Math {
      *  the Jack expressions x/y and divide(x,y) return the same value.
      */
     function int divide(int x, int y) {
-        if (y > x) {
+        var int neg_x, neg_y;
+        var int q;
+        var int result;
+        
+        let neg_x = x < 0;
+        let neg_y = y < 0;
+        let x = Math.abs(x);
+        let y = Math.abs(y);
+
+        if( y > x ) {
             return 0;
         }
-        let q = divide(x, 2 * y);
-        if ((x - (2 * q * y)) < y){
-            return 2  * q;
+        let q = Math.divide(x, y+y);
+        if( x-(2*q*y) < y ) {
+            let result = q+q;
         }
         else {
-            return 2 * q + 1; 
+            let result = q+q+1;
+        }
+        
+        if( neg_x = neg_y ) {
+            return result;
+        }
+        else {
+            return -result;
         }
     }
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {
-        var int y, j;
+        var int y, j, ypluspower, ypluspowersq;
+        let ypluspowersq = 0;
+        let ypluspower = 0;
         let y = 0;
         let j = 7;
-        while (j > -1){
-            if (((exp(y + exp(2, j), 2) < x | exp(y + exp(2, j), 2) = x) & exp(y + exp(2, j), 2) > 0) {
-                let y = y + exp(2, j);
+        while (~(j < 0)){
+            let ypluspower = y + twoToThe[j];
+            let ypluspowersq = ypluspower * ypluspower;
+            if (~(ypluspowersq > x) & (ypluspowersq > 0)) {
+                let y = ypluspower;
             }
             let j = j - 1;
         }
         return y;
     }
 
-    function exp(a, b) {
-        var int i, result;
-        let result = 1;
-        let i = 0;
-        while (i < b){
-            result = result * a;
-            let i = i + 1;
-        }
-        return result;
-
-    }
 
     /** Returns the greater number. */
     function int max(int a, int b) {
